@@ -5094,7 +5094,7 @@ func (f *Fs) PublicLink(ctx context.Context, remote string, expire fs.Duration, 
 var commandHelp = []fs.CommandHelp{{
 	Name:  "restore",
 	Short: "Restore objects from GLACIER or INTELLIGENT-TIERING archive tier",
-	Long: `This command can be used to restore one or more objects from GLACIER to normal storage 
+	Long: `This command can be used to restore one or more objects from GLACIER to normal storage
 or from INTELLIGENT-TIERING Archive Access / Deep Archive Access tier to the Frequent Access tier.
 
 Usage Examples:
@@ -6538,9 +6538,10 @@ func (o *Object) prepareUpload(ctx context.Context, src fs.ObjectInfo, options [
 	modTime := src.ModTime(ctx)
 
 	ui.req = &s3.PutObjectInput{
-		Bucket: &bucket,
-		ACL:    types.ObjectCannedACL(o.fs.opt.ACL),
-		Key:    &bucketPath,
+		Bucket:            &bucket,
+		ACL:               types.ObjectCannedACL(o.fs.opt.ACL),
+		Key:               &bucketPath,
+		ChecksumAlgorithm: types.ChecksumAlgorithmCrc32c,
 	}
 
 	// Fetch metadata if --metadata is in use
@@ -6548,6 +6549,7 @@ func (o *Object) prepareUpload(ctx context.Context, src fs.ObjectInfo, options [
 	if err != nil {
 		return ui, fmt.Errorf("failed to read metadata from source object: %w", err)
 	}
+	meta["written-from"] = "rclone"
 	ui.req.Metadata = make(map[string]string, len(meta)+2)
 	// merge metadata into request and user metadata
 	for k, v := range meta {
